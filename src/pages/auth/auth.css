@@ -1,0 +1,245 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   auth.css  —  Global stylesheet for all auth pages (Login / Register / FP)
+   Rule: Tailwind utilities first. This file handles ONLY what Tailwind cannot:
+   custom properties, @keyframes, pseudoelements, complex shadows/gradients.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
+
+/* ── Brand tokens ────────────────────────────────────────────────────────── */
+:root {
+  --auth-brand:    #df3226;
+  --auth-brand-dk: #c42218;
+  --auth-brand-lt: rgba(223, 50, 38, 0.08);
+}
+
+/* ── Scoped font override (auth pages only) ──────────────────────────────── */
+.auth-font,
+.auth-font * {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.auth-mono {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* ── Page — light gray bg with Zoho-style geometric bg shapes ────────────── */
+.auth-page {
+  background-color: #f4f5f7;
+  position: relative;
+  overflow: hidden;
+}
+.auth-page::before,
+.auth-page::after {
+  content: '';
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+}
+/* Top-right polygon */
+.auth-page::before {
+  top: -18%;
+  right: -10%;
+  width: 58vw;
+  height: 70vh;
+  background: rgba(225, 228, 236, 0.7);
+  clip-path: polygon(14% 0%, 100% 0%, 100% 100%, 0% 82%);
+  border-radius: 0 0 0 40%;
+}
+/* Bottom-left polygon */
+.auth-page::after {
+  bottom: -18%;
+  left: -10%;
+  width: 52vw;
+  height: 65vh;
+  background: rgba(225, 228, 236, 0.6);
+  clip-path: polygon(0% 18%, 84% 0%, 100% 100%, 0% 100%);
+  border-radius: 0 40% 0 0;
+}
+
+/* ── Card shadow (Tailwind shadow-xl is not enough) ─────────────────────── */
+.auth-card {
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    0 6px 24px rgba(0, 0, 0, 0.07),
+    0 20px 56px rgba(0, 0, 0, 0.05);
+}
+
+/* ── Right-panel feature area ────────────────────────────────────────────── */
+.auth-panel-right {
+  background: linear-gradient(148deg, #f5f8fd 0%, #e8edf8 100%);
+  position: relative;
+  overflow: hidden;
+}
+/* Dot-grid overlay */
+.auth-panel-right::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.048) 1px, transparent 1px);
+  background-size: 22px 22px;
+  pointer-events: none;
+}
+
+/* ── @keyframes ──────────────────────────────────────────────────────────── */
+@keyframes authSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes authSlideInR {
+  from { opacity: 0; transform: translateX(18px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+@keyframes authSlideInL {
+  from { opacity: 0; transform: translateX(-18px); }
+  to   { opacity: 1; transform: translateX(0);     }
+}
+@keyframes authFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes authSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes authSuccessPop {
+  0%   { opacity: 0; transform: scale(0.82); }
+  65%  { transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1);    }
+}
+
+/* ── Animation utility classes ───────────────────────────────────────────── */
+.a-su  { animation: authSlideUp  0.42s cubic-bezier(.22, 1, .36, 1) both; }
+.a-sir { animation: authSlideInR 0.32s cubic-bezier(.22, 1, .36, 1) both; }
+.a-sil { animation: authSlideInL 0.32s cubic-bezier(.22, 1, .36, 1) both; }
+.a-fi  { animation: authFadeIn   0.35s ease both; }
+.a-pop { animation: authSuccessPop 0.48s cubic-bezier(.22, 1, .36, 1) forwards; }
+
+.d1 { animation-delay: 0.06s; }
+.d2 { animation-delay: 0.12s; }
+.d3 { animation-delay: 0.18s; }
+.d4 { animation-delay: 0.24s; }
+.d5 { animation-delay: 0.30s; }
+
+/* ── Spinner ─────────────────────────────────────────────────────────────── */
+.a-spin { animation: authSpin 0.75s linear infinite; }
+
+/* ── Input — Base styling & visibility ───────────────────────────────────── */
+.auth-input {
+  -webkit-appearance: none;
+  background-color: #ffffff !important;
+  color: #1a1d23 !important; /* High contrast slate-900 equivalent */
+  border-width: 1px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.auth-input:focus {
+  border-color: var(--auth-brand) !important;
+  box-shadow:   0 0 0 3px rgba(223, 50, 38, 0.12) !important;
+  outline: none;
+}
+.auth-input::placeholder {
+  color: #94a3b8; /* slate-400 */
+}
+.auth-input.input-err {
+  border-color: #ef4444 !important;
+  background-color: #fffbfa !important;
+}
+
+/* ── Dark Mode Overrides ─────────────────────────────────────────────────── */
+.dark .auth-page {
+  background-color: #0a0e14;
+}
+.dark .auth-page::before {
+  background: rgba(30, 41, 59, 0.3);
+}
+.dark .auth-page::after {
+  background: rgba(30, 41, 59, 0.25);
+}
+.dark .auth-card {
+  background-color: #1e293b !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.dark .auth-panel-right {
+  background: linear-gradient(148deg, #0f172a 0%, #1e293b 100%);
+}
+.dark .auth-panel-right::before {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+.dark .auth-input {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #334155;
+}
+.dark .auth-input::placeholder {
+  color: #64748b;
+}
+.dark .auth-input.input-err {
+  background-color: #451a1a !important;
+}
+.dark .auth-ghost:hover {
+  border-color: #475569 !important;
+  background-color: #0f172a !important;
+}
+.dark .email-chip {
+  background-color: #334155 !important;
+  border-color: #475569 !important;
+}
+.dark .email-chip:hover {
+  background-color: #475569 !important;
+}
+.dark .c-dot {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+.dark .c-dot.dot-on {
+  background-color: #df3226 !important;
+}
+
+/* ── Primary brand button ────────────────────────────────────────────────── */
+.auth-btn {
+  transition: background-color 0.16s ease, transform 0.12s ease, box-shadow 0.16s ease;
+  box-shadow: 0 2px 8px rgba(223, 50, 38, 0.22);
+}
+.auth-btn:hover:not(:disabled) {
+  background-color: var(--auth-brand-dk) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(223, 50, 38, 0.32);
+}
+.auth-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(223, 50, 38, 0.2);
+}
+.auth-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ── Ghost/link buttons ──────────────────────────────────────────────────── */
+.auth-ghost {
+  transition: border-color 0.16s, background-color 0.16s, color 0.16s;
+}
+.auth-ghost:hover {
+  border-color: #9ca3af !important;
+  background-color: #f9fafb !important;
+}
+
+/* ── Email chip (step-2 login) ───────────────────────────────────────────── */
+.email-chip {
+  transition: background-color 0.15s;
+}
+.email-chip:hover {
+  background-color: #f1f3f6 !important;
+}
+
+/* ── Password strength bar ───────────────────────────────────────────────── */
+.pw-fill {
+  transition: width 0.4s ease, background-color 0.4s ease;
+}
+
+/* ── Carousel dot nav ────────────────────────────────────────────────────── */
+.c-dot {
+  transition: all 0.3s ease;
+}
+.c-dot.dot-on {
+  width: 20px !important;
+  border-radius: 4px !important;
+}

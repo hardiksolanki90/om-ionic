@@ -1,0 +1,7 @@
+{
+  "name": "plugins-manifest",
+  "version": "1.0.0",
+  "plugins": [
+    "my-plugin"
+  ]
+}

@@ -1,0 +1,2 @@
+reference,customer_code,salesman_code,route_code,order_date,item_code,quantity,price,discount,discount_type,tax,customer_note,status
+ORD-001,CUS-01,SM-01,RT-01,2026-04-20,ITM-001,2,9.99,0,percentage,5,,Pending

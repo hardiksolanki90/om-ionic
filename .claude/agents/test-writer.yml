@@ -1,0 +1,4 @@
+name: test-writer
+description: Generates tests for application features.
+skills:
+  - text-writer

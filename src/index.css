@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    @apply font-sans bg-slate-100 text-slate-900 dark:bg-slate-900 dark:text-slate-100 antialiased;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-slate-300 dark:bg-slate-700 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400 dark:bg-slate-600; }
+}
+
+@layer utilities {
+  .scrollbar-thin { scrollbar-width: thin; }
+}
+
+/* ── Global Loader Size Variants ──────────────────────────────────────── */
+.loader-small .loading-wrapper {
+  --min-width: 80px;
+  --min-height: 80px;
+  padding: 12px;
+}
+.loader-small ion-spinner {
+  width: 24px;
+  height: 24px;
+}
+
+.loader-medium .loading-wrapper {
+  --min-width: 110px;
+  --min-height: 110px;
+  padding: 20px;
+}
+.loader-medium ion-spinner {
+  width: 36px;
+  height: 36px;
+}
+
+.loader-large .loading-wrapper {
+  --min-width: 140px;
+  --min-height: 140px;
+  padding: 28px;
+}
+.loader-large ion-spinner {
+  width: 52px;
+  height: 52px;
+}
+
+.loader-xl .loading-wrapper {
+  --min-width: 180px;
+  --min-height: 180px;
+  padding: 36px;
+}
+.loader-xl ion-spinner {
+  width: 68px;
+  height: 68px;
+}

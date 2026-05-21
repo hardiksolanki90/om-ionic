@@ -1,0 +1,12 @@
+/* For information on how to create your own theme, please refer to:
+http://ionicframework.com/docs/theming/ */
+
+/* ── Split Pane / Sidebar width ───────────────────────────────────────────────
+ * Industry standard sidebar width is 240px (Linear, GitHub, Notion).
+ * Ionic's default is 320px — override here.
+ * ─────────────────────────────────────────────────────────────────────────── */
+ion-split-pane {
+  --side-width: 240px;
+  --side-min-width: 240px;
+  --side-max-width: 240px;
+}

@@ -1,0 +1,4 @@
+name: security-auditor
+description: Audits code for security vulnerabilities.
+skills:
+  - security-audit

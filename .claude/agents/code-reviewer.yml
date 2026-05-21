@@ -1,0 +1,4 @@
+name: code-reviewer
+description: Acts as a dedicated code reviewer agent.
+skills:
+  - code-review

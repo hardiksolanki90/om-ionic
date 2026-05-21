@@ -1,0 +1,2 @@
+item_code,item_name,description,item_price,brand_code,category_code,base_uom_code,base_upc,status
+ITM-001,Item Name,Item description,9.99,BR-01,CAT-01,PCS,123456789012,active

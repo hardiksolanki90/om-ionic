@@ -1,0 +1,2 @@
+code,first_name,last_name,email,mobile,username,password,salesman_type,route_code,status
+SM-01,John,Doe,john@example.com,9876543210,johndoe,,Salesman,RT-01,active
