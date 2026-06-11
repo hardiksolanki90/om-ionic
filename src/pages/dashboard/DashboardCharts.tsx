@@ -1,50 +1,66 @@
 import React from 'react'
-import { cn } from '../../lib/cn'
 
 interface ChartProps {
-  data: any[]
+  data: { label: string; value: number }[]
   height?: number
   className?: string
+}
+
+function formatAxisLabel(label: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(label)) {
+    const [, month, day] = label.split('-')
+    return `${month}/${day}`
+  }
+
+  return label
+}
+
+function chartMax(values: number[], floor = 1): number {
+  if (values.length === 0) {
+    return floor
+  }
+
+  return Math.max(...values, floor)
 }
 
 /**
  * Simple Bar Chart for Route-wise Sales
  */
 export const RouteBarChart = ({ data, height = 200 }: ChartProps) => {
-  const max = Math.max(...data.map(d => d.value), 200)
-  
+  if (data.length === 0) {
+    return (
+      <div style={{ height }} className="flex items-center justify-center text-xs text-slate-400">
+        No route sales data
+      </div>
+    )
+  }
+
+  const max = chartMax(data.map((d) => d.value), 1)
+
   return (
     <div style={{ height }} className="w-full relative pt-4 pb-8 px-8">
-      {/* Y-Axis Labels */}
       <div className="absolute left-0 top-4 bottom-8 w-8 flex flex-col justify-between text-[10px] text-slate-400 font-mono text-right pr-2">
-        <span>{max}</span>
-        <span>{max / 2}</span>
+        <span>{max.toLocaleString()}</span>
+        <span>{(max / 2).toLocaleString()}</span>
         <span>0</span>
       </div>
-      
-      {/* Chart Area */}
+
       <div className="w-full h-full border-l border-b border-slate-200 dark:border-slate-700/60 flex items-end justify-around gap-4 px-4 relative">
-        {/* Horizontal Grid Lines */}
         <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
           <div className="w-full border-t border-slate-100 dark:border-slate-700/60 border-dashed" />
           <div className="w-full border-t border-slate-100 dark:border-slate-700/60 border-dashed" />
           <div className="h-0" />
         </div>
-        
+
         {data.map((d, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center group relative max-w-[80px]">
-            <div 
-              className="w-full bg-brand-500 rounded-t-md transition-all duration-500 hover:bg-brand-600 cursor-pointer shadow-sm shadow-brand-100"
-              style={{ height: `${(d.value / max) * 100}%` }}
-            >
-              {/* Tooltip */}
-              <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                {d.label}: {d.value}
-              </div>
-            </div>
-            {/* X-Axis Label */}
-            <span className="absolute -bottom-8 text-[10px] text-slate-400 font-mono rotate-45 origin-left whitespace-nowrap">
-              {d.label}
+          <div key={i} className="flex-1 flex flex-col items-center group relative max-w-[80px] min-h-full justify-end">
+            <div
+              className="w-full min-h-[4px] bg-brand-500 rounded-t-md transition-all duration-500 hover:bg-brand-600 cursor-pointer shadow-sm shadow-brand-100"
+              style={{ height: `${Math.max((d.value / max) * 100, 4)}%` }}
+              title={`${d.label}: ${d.value.toLocaleString()}`}
+            />
+            <span className="absolute -bottom-8 text-[10px] text-slate-400 font-mono whitespace-nowrap">
+              {formatAxisLabel(d.label)}
             </span>
           </div>
         ))}
@@ -65,24 +81,29 @@ export const DailyLineChart = ({ data, height = 200 }: ChartProps) => {
     )
   }
 
-  const max = Math.max(...data.map(d => d.value), 1)
-  const points = data.map((d, i) => {
-    const x = data.length === 1 ? 50 : (i / (data.length - 1)) * 100
-    const y = 100 - (d.value / max) * 100
-    return `${x},${y}`
-  }).join(' ')
+  const max = chartMax(data.map((d) => d.value), 1)
+  const single = data.length === 1
+  const point = data[0]
+
+  const linePoints = single
+    ? `50,${100 - (point.value / max) * 100} 50,100`
+    : data
+        .map((d, i) => {
+          const x = (i / (data.length - 1)) * 100
+          const y = 100 - (d.value / max) * 100
+          return `${x},${y}`
+        })
+        .join(' ')
 
   return (
-    <div style={{ height }} className="w-full relative pt-4 pb-8 px-8">
-      {/* Y-Axis Labels */}
-      <div className="absolute left-0 top-4 bottom-8 w-8 flex flex-col justify-between text-[10px] text-slate-400 font-mono text-right pr-2">
+    <div style={{ height }} className="w-full relative pt-4 pb-10 px-8">
+      <div className="absolute left-0 top-4 bottom-10 w-8 flex flex-col justify-between text-[10px] text-slate-400 font-mono text-right pr-2">
         <span>{max.toLocaleString()}</span>
         <span>{(max / 2).toLocaleString()}</span>
         <span>0</span>
       </div>
 
-      <div className="w-full h-full border-l border-b border-slate-200 dark:border-slate-700/60 relative overflow-visible">
-        {/* Horizontal Grid Lines */}
+      <div className="w-full h-full border-l border-b border-slate-200 dark:border-slate-700/60 relative">
         <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
           <div className="w-full border-t border-slate-100 dark:border-slate-700/60 border-dashed" />
           <div className="w-full border-t border-slate-100 dark:border-slate-700/60 border-dashed" />
@@ -90,33 +111,28 @@ export const DailyLineChart = ({ data, height = 200 }: ChartProps) => {
         </div>
 
         <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
-          <polyline
-            fill="none"
-            stroke="#10B981"
-            strokeWidth="1.5"
-            points={points}
-            className="transition-all duration-1000"
-          />
-          {data.map((d, i) => {
-            const x = data.length === 1 ? 50 : (i / (data.length - 1)) * 100
-            const y = 100 - (d.value / max) * 100
-            return (
-              <circle
-                key={i}
-                cx={x}
-                cy={y}
-                r="1.5"
-                fill="#10B981"
-                className="hover:r-2 transition-all cursor-pointer"
-              />
-            )
-          })}
+          {single ? (
+            <>
+              <line x1="50" y1={100 - (point.value / max) * 100} x2="50" y2="100" stroke="#10B981" strokeWidth="2" />
+              <circle cx="50" cy={100 - (point.value / max) * 100} r="4" fill="#10B981" />
+            </>
+          ) : (
+            <>
+              <polyline fill="none" stroke="#10B981" strokeWidth="2" points={linePoints} vectorEffect="non-scaling-stroke" />
+              {data.map((d, i) => {
+                const x = (i / (data.length - 1)) * 100
+                const y = 100 - (d.value / max) * 100
+                return <circle key={i} cx={x} cy={y} r="3" fill="#10B981" />
+              })}
+            </>
+          )}
         </svg>
 
-        {/* X-Axis Labels */}
-        <div className="absolute -bottom-6 inset-x-0 flex justify-between px-1">
+        <div className="absolute -bottom-8 inset-x-0 flex justify-between px-1">
           {data.map((d, i) => (
-            <span key={i} className="text-[10px] text-slate-400 lowercase first-letter:uppercase">{d.label}</span>
+            <span key={i} className="text-[10px] text-slate-500 dark:text-slate-400">
+              {formatAxisLabel(d.label)}
+            </span>
           ))}
         </div>
       </div>
@@ -136,40 +152,36 @@ export const AovAreaChart = ({ data, height = 240 }: ChartProps) => {
     )
   }
 
-  const max = Math.max(...data.map(d => d.value), 1)
+  const max = chartMax(data.map((d) => d.value), 1)
+  const single = data.length === 1
+  const point = data[0]
+  const y = 100 - (point.value / max) * 100
 
-  // Create SVG path for smooth curve
-  const getPath = (isClosed = false) => {
-    if (data.length === 0) return ''
-
-    if (data.length === 1) {
-      const y = 100 - (data[0].value / max) * 100
-      const path = `M 50,${y}`
-      return isClosed ? `${path} L 50,100 L 50,100 Z` : path
+  const getPath = (isClosed = false): string => {
+    if (single) {
+      const line = `M 50,${y} L 50,100`
+      return isClosed ? `${line} L 50,100 Z` : `M 50,${y}`
     }
 
     let path = `M 0,${100 - (data[0].value / max) * 100}`
 
     for (let i = 1; i < data.length; i++) {
-        const x = (i / (data.length - 1)) * 100
-        const y = 100 - (data[i].value / max) * 100
-        
-        // Simple smoothing
-        const prevX = ((i - 1) / (data.length - 1)) * 100
-        const cpX = (prevX + x) / 2
-        path += ` C ${cpX},${100 - (data[i-1].value / max) * 100} ${cpX},${y} ${x},${y}`
+      const x = (i / (data.length - 1)) * 100
+      const pointY = 100 - (data[i].value / max) * 100
+      const prevX = ((i - 1) / (data.length - 1)) * 100
+      const cpX = (prevX + x) / 2
+      path += ` C ${cpX},${100 - (data[i - 1].value / max) * 100} ${cpX},${pointY} ${x},${pointY}`
     }
-    
+
     if (isClosed) {
-      path += ` L 100,100 L 0,100 Z`
+      path += ' L 100,100 L 0,100 Z'
     }
-    
+
     return path
   }
 
   return (
     <div style={{ height }} className="w-full relative pt-4 pb-12 px-10">
-      {/* Y-Axis Labels */}
       <div className="absolute left-0 top-4 bottom-12 w-10 flex flex-col justify-between text-[10px] text-slate-400 font-mono text-right pr-2">
         <span>{max.toLocaleString()}</span>
         <span>{(max * 0.75).toLocaleString()}</span>
@@ -178,8 +190,7 @@ export const AovAreaChart = ({ data, height = 240 }: ChartProps) => {
         <span>0</span>
       </div>
 
-      <div className="w-full h-full border-l border-b border-slate-200 dark:border-slate-700/60 relative overflow-visible">
-        {/* Horizontal Grid Lines */}
+      <div className="w-full h-full border-l border-b border-slate-200 dark:border-slate-700/60 relative">
         <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
           <div className="w-full border-t border-slate-50 dark:border-slate-700/60" />
           <div className="w-full border-t border-slate-50 dark:border-slate-700/60" />
@@ -191,27 +202,35 @@ export const AovAreaChart = ({ data, height = 240 }: ChartProps) => {
         <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
           <defs>
             <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.2" />
+              <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.25" />
               <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
             </linearGradient>
           </defs>
-          <path d={getPath(true)} fill="url(#purpleGradient)" />
-          <path d={getPath()} fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" />
-          
-          {data.map((d, i) => {
-             const x = data.length === 1 ? 50 : (i / (data.length - 1)) * 100
-             const y = 100 - (d.value / max) * 100
-             return (
-               <circle key={i} cx={x} cy={y} r="1.5" fill="#8B5CF6" />
-             )
-          })}
+          {single ? (
+            <>
+              <polygon points={`50,${y} 50,100 45,100 55,100`} fill="url(#purpleGradient)" />
+              <line x1="50" y1={y} x2="50" y2="100" stroke="#8B5CF6" strokeWidth="2" />
+              <circle cx="50" cy={y} r="4" fill="#8B5CF6" />
+            </>
+          ) : (
+            <>
+              <path d={getPath(true)} fill="url(#purpleGradient)" />
+              <path d={getPath()} fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" />
+              {data.map((d, i) => {
+                const x = (i / (data.length - 1)) * 100
+                const pointY = 100 - (d.value / max) * 100
+                return <circle key={i} cx={x} cy={pointY} r="3" fill="#8B5CF6" />
+              })}
+            </>
+          )}
         </svg>
 
-        {/* X-Axis Labels (Sampled for better spacing) */}
         <div className="absolute -bottom-8 inset-x-0 flex justify-between px-1">
-          {data.map((d, i) => i % 2 === 0 ? (
-            <span key={i} className="text-[10px] text-slate-400 lowercase first-letter:uppercase">{d.label}</span>
-          ) : null)}
+          {data.map((d, i) => (
+            <span key={i} className="text-[10px] text-slate-500 dark:text-slate-400">
+              {formatAxisLabel(d.label)}
+            </span>
+          ))}
         </div>
       </div>
     </div>

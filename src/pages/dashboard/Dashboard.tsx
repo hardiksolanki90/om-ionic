@@ -75,9 +75,11 @@ export default function Dashboard() {
 
   const isValidRange = !rangeError && !!startDate && !!endDate
 
-  const { data, isLoading } = useDashboard(
-    isValidRange ? { start_date: startDate, end_date: endDate } : undefined
+  const { data, isPending, isError, error } = useDashboard(
+    isValidRange ? { start_date: startDate, end_date: endDate } : undefined,
   )
+
+  const showStatsSkeleton = isPending && data === undefined
 
   const handleStartDateChange = (val: string) => {
     setStartDate(val)
@@ -103,12 +105,14 @@ export default function Dashboard() {
     setEndDate(defaults.end)
   }
 
+  const formatStat = (value: number | undefined) =>
+    value === undefined ? '—' : new Intl.NumberFormat().format(value)
+
   const statCards = [
-    { label: "Today's Orders", value: data?.stats.todayOrders ?? '—', icon: <ShoppingCart className="w-5 h-5" />, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30', up: true, change: 'Today', changeHint: 'calendar day' },
-    { label: 'Total Orders', value: data?.stats.totalOrders ?? '—', icon: <ShoppingCart className="w-5 h-5" />, color: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-900/30', up: true, change: '0%', changeHint: 'vs last period' },
-    { label: 'Customers', value: data?.stats.totalCustomers ?? '—', icon: <Users className="w-5 h-5" />, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/30', up: true, change: '0%', changeHint: 'vs last period' },
-    { label: 'Items in Catalog', value: data?.stats.totalItems ?? '—', icon: <Package className="w-5 h-5" />, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', up: true, change: '0%', changeHint: 'vs last period' },
-    { label: 'Returns', value: data?.stats.totalReturns ?? '—', icon: <RotateCcw className="w-5 h-5" />, color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-900/30', up: false, change: '0%', changeHint: 'vs last period' },
+    { label: 'Total Orders', value: formatStat(data?.stats.totalOrders), icon: <ShoppingCart className="w-5 h-5" />, color: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-900/30', up: true },
+    { label: 'Customers', value: formatStat(data?.stats.totalCustomers), icon: <Users className="w-5 h-5" />, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/30', up: true },
+    { label: 'Items in Catalog', value: formatStat(data?.stats.totalItems), icon: <Package className="w-5 h-5" />, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', up: true },
+    { label: 'Returns', value: formatStat(data?.stats.totalReturns), icon: <RotateCcw className="w-5 h-5" />, color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-900/30', up: false },
   ]
 
   const routeSales: ChartPoint[] = [] // Not yet provided by backend
@@ -214,18 +218,34 @@ export default function Dashboard() {
           </div>
         )}
 
+        {isError && (
+          <div className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-500/20 rounded-lg px-3 py-2">
+            <AlertTriangle className="w-3.5 h-3.5" />
+            Failed to load dashboard data. {(error as Error)?.message ?? 'Please try again.'}
+          </div>
+        )}
+
         {/* Stats grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {statCards.map(stat => (
             <div key={stat.label} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/60 p-5 flex items-start justify-between shadow-sm hover:shadow-md transition-shadow">
               <div>
                 <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{stat.label}</p>
-                <p className="mt-1.5 text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  {isLoading ? <span className="inline-block w-16 h-7 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md" /> : stat.value}
+                <p className="mt-1.5 text-2xl font-bold text-slate-900 dark:text-white tracking-tight tabular-nums">
+                  {showStatsSkeleton ? (
+                    <span className="inline-block w-16 h-7 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md" />
+                  ) : (
+                    stat.value
+                  )}
                 </p>
+                {stat.label === 'Total Orders' && isValidRange && !showStatsSkeleton && (
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    {startDate} → {endDate}
+                  </p>
+                )}
                 <div className={`mt-2 flex items-center gap-1 text-xs font-semibold ${stat.up ? 'text-emerald-600' : 'text-red-500'}`}>
                   {stat.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {stat.change} <span className="text-slate-400 font-normal ml-0.5">{stat.changeHint ?? 'vs last period'}</span>
+                  <span className="text-slate-400 font-normal">Selected period</span>
                 </div>
               </div>
               <div className={`${stat.bg} ${stat.color} p-2.5 rounded-xl`}>

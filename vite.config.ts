@@ -4,8 +4,8 @@ import legacy from '@vitejs/plugin-legacy'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-const BACKEND = 'http://127.0.0.1'
-const BACKEND_HOST = 'om-laravel.test'
+const BACKEND = 'http://api.om.test'
+const BACKEND_HOST = 'api.om.test'
 
 // https://vitejs.dev/config/
 export default defineConfig({
