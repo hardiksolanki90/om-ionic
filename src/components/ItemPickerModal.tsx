@@ -7,14 +7,14 @@ export interface ItemUomOption { id: number; name: string }
 interface Props {
   isOpen: boolean
   onClose: () => void
-  onSelect: (id: number, name: string, price: number, tax: number, uoms: ItemUomOption[]) => void
+  onSelect: (id: number, name: string, price: number, tax: number, uoms: ItemUomOption[], code?: string) => void
   selectedId?: number
 }
 
 export function ItemPickerModal({ isOpen, onClose, onSelect, selectedId }: Props) {
   const [search, setSearch] = useState('')
 
-  const { data, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } = useItemListInfinite(search)
+  const { data, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } = useItemListInfinite(search, isOpen)
 
   const rawItems = useMemo(() =>
     (data?.pages ?? []).flatMap(p => p.items).map(i => {
@@ -44,7 +44,7 @@ export function ItemPickerModal({ isOpen, onClose, onSelect, selectedId }: Props
 
   const handleSelect = (id: number, name: string) => {
     const item = rawItems.find(i => i.id === id)
-    onSelect(id, name, item?.price ?? 0, item?.tax ?? 0, item?.uoms ?? [])
+    onSelect(id, name, item?.price ?? 0, item?.tax ?? 0, item?.uoms ?? [], item?.code)
     handleClose()
   }
 

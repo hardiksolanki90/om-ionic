@@ -16,6 +16,8 @@ const COMPONENT_LABELS: Record<CodeComponent, string> = {
   brand: 'Brands',
   category: 'Categories',
   customer: 'Customers',
+  delivery: 'Deliveries',
+  invoice: 'Invoices',
   item: 'Items',
   order: 'Orders',
   return: 'Returns',

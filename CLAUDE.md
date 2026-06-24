@@ -6,9 +6,9 @@
   - Main entry: `src/main.tsx`
   - Key features: Customer management, Item Management, Order Creation, Warehouse management
   
-- **Backend**: `/Users/rudransh/Documents/Hardik/order-management`
+- **Backend**: `/Users/rudransh/Documents/Hardik/om-laravel`
   - Technology: Laravel API (PHP)
-  - API endpoints for football app functionality
+  - API endpoints for order management app functionality
 
 ## Project
 
@@ -121,7 +121,9 @@ Error:  { message: string }
 
 ## Migration Status (Ionic → Pure React)
 
-Currently in migration. All phases build on Phase 1+2 being done first.
+**Current phase: 🔄 Phase 1** — Not started. Ionic still present throughout codebase.
+
+All phases build on Phase 1+2 being done first.
 
 | Phase | Scope | Status |
 |-------|-------|--------|

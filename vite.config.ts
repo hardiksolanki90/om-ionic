@@ -13,6 +13,9 @@ export default defineConfig({
     react(),
     legacy()
   ],
+  optimizeDeps: {
+    include: ['react-phone-number-input'],
+  },
   server: {
     proxy: {
       '/api': {

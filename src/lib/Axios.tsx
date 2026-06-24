@@ -7,14 +7,21 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: true,  // Send session cookie on every request
+  withCredentials: true,
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
 });
 
-// Response interceptor — 401 = session expired → redirect to login
+// Response interceptor — 401 on authenticated requests = session expired → redirect to login.
+// Skip /admin/me (session probe on refresh) so ProtectedRoute handles the unauthenticated state
+// instead of hard-navigating and causing a login flash on every refresh.
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    if (error.response?.status === 401 && window.location.pathname !== '/login') {
+    const url: string = error.config?.url ?? ''
+    const isSessionProbe = url.includes('/admin/me')
+    const isAuthRoute = window.location.pathname === '/login'
+    if (error.response?.status === 401 && !isSessionProbe && !isAuthRoute) {
       window.location.href = '/login';
     }
     return Promise.reject(error);

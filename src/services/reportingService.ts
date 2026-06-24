@@ -1,47 +1,53 @@
-import api from '../lib/Axios';
-import type {
-  ReportDefinition,
-  ReportQueryPayload,
-} from '../types/reporting';
+import api from '../lib/Axios'
+import type { ReportTableRow } from '../types/reporting'
 
-export type { ReportDateRange, ReportQueryPayload, ReportDefinition } from '../types/reporting';
-
-/** Axios interceptor already unwraps to response body (see lib/Axios.tsx). */
-type ApiEnvelope<T> = { success?: boolean; data?: T; message?: string };
-
-function unwrap<T>(body: ApiEnvelope<T>, label: string): T {
-  if (body?.data !== undefined && body.data !== null) {
-    return body.data;
-  }
-  throw new Error(body?.message ?? `Invalid ${label} response from API`);
+export interface ReportFilters {
+  dateFrom?: string
+  dateTo?: string
+  search?: string
+  salesmanId?: number
+  customerId?: number
+  warehouseId?: number
+  categoryId?: number
+  brandId?: number
+  threshold?: number
+  page?: number
+  perPage?: number
 }
 
-export async function fetchReportCatalog(): Promise<ReportDefinition[]> {
-  const body = (await api.get('/admin/reports')) as ApiEnvelope<ReportDefinition[]>;
-  const data = unwrap(body, 'report catalog');
-  return Array.isArray(data) ? data : [];
+export interface ReportResponse {
+  data: ReportTableRow[]
+  total: number
+  currentPage: number
+  lastPage: number
+  perPage: number
 }
 
-export async function queryReport<T = unknown>(
-  slug: string,
-  payload: ReportQueryPayload,
-): Promise<T> {
-  const body = (await api.post(`/admin/reports/${slug}/query`, payload)) as ApiEnvelope<T>;
-  return unwrap(body, 'report query');
-}
+export const reportingService = {
+  fetch: async (slug: string, filters: ReportFilters = {}): Promise<ReportResponse> => {
+    const params: Record<string, string | number> = {
+      page: filters.page ?? 1,
+      per_page: filters.perPage ?? 25,
+    }
 
-export async function fetchSavedReportViews() {
-  const body = (await api.get('/admin/reports/views')) as ApiEnvelope<unknown[]>;
-  return unwrap(body, 'saved views');
-}
+    if (filters.dateFrom)    params.date_from    = filters.dateFrom
+    if (filters.dateTo)      params.date_to      = filters.dateTo
+    if (filters.search)      params.search       = filters.search
+    if (filters.salesmanId)  params.salesman_id  = filters.salesmanId
+    if (filters.customerId)  params.customer_id  = filters.customerId
+    if (filters.warehouseId) params.warehouse_id = filters.warehouseId
+    if (filters.categoryId)  params.category_id  = filters.categoryId
+    if (filters.brandId)     params.brand_id     = filters.brandId
+    if (filters.threshold != null) params.threshold = filters.threshold
 
-export async function createSavedReportView(payload: {
-  reportSlug: string;
-  name: string;
-  isFavourite?: boolean;
-  filterPayload: Record<string, unknown>;
-  columnPayload?: Record<string, unknown>;
-}) {
-  const body = (await api.post('/admin/reports/views', payload)) as ApiEnvelope<unknown>;
-  return unwrap(body, 'saved view');
+    const res: any = await api.get(`/admin/reports/${slug}`, { params })
+
+    return {
+      data:        res.data   ?? res.items ?? [],
+      total:       res.total  ?? res.meta?.total ?? 0,
+      currentPage: res.current_page ?? res.meta?.current_page ?? 1,
+      lastPage:    res.last_page    ?? res.meta?.last_page    ?? 1,
+      perPage:     res.per_page     ?? res.meta?.per_page     ?? 25,
+    }
+  },
 }

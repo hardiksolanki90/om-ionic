@@ -16,7 +16,7 @@ Doc 07 defines a **classic OLTP + reporting star schema** pattern. Today, `om-la
 2. Run **incremental ETL** from OLTP → facts → daily summaries.
 3. Expose a **unified Reporting API** under `/api/admin/reports/*` while gradually migrating dashboard and entity `performance` endpoints to read summaries.
 
-**Do not** build GST/ledger reports until OLTP fixes in [01](./01-order-management-system.md) / [02](./02-returns-reverse-logistics.md) and schema in [06](./06-reporting-compliance-benchmark.md).
+**Do not** build GST/ledger reports until OLTP fixes in [01](./01-system.md) / [02](./02-returns-reverse-logistics.md) and schema in [06](./06-reporting-compliance-benchmark.md).
 
 ---
 
@@ -266,7 +266,7 @@ Route::prefix('reports')->group(function () {
 
 | slug | name | base table | Maps to report doc |
 |------|------|------------|-------------------|
-| `order-management` | Order Management | `rpt_fact_order_lines` | 01 |
+| ` | Order Management | `rpt_fact_order_lines` | 01 |
 | `returns-logistics` | Returns & Reverse Logistics | `rpt_fact_return_lines` | 02 |
 | `inventory-stock` | Inventory & Stock | `rpt_summary_stock_current` | 03 |
 | `customer-sales` | Customer & Sales Performance | `rpt_summary_sales_daily_customer` | 04 |
@@ -319,7 +319,7 @@ Route::prefix('reports')->group(function () {
   "success": true,
   "data": {
     "meta": {
-      "reportSlug": "order-management",
+      "reportSlug": ",
       "dateRange": { "from": "2026-01-01", "to": "2026-05-20" },
       "refreshedAt": "2026-05-20T10:05:00Z",
       "source": "summary"
@@ -462,7 +462,7 @@ src/
 ### 5.2 Service example
 
 ```typescript
-// POST /api/admin/reports/order-management/query
+// POST /api/admin/reports/query
 export async function queryReport(slug: string, payload: ReportQueryPayload) {
   const { data } = await api.post(`/admin/reports/${slug}/query`, payload);
   return data;
@@ -509,7 +509,7 @@ export async function queryReport(slug: string, payload: ReportQueryPayload) {
 
 - [ ] Seed `report_definitions` (5 slugs)
 - [ ] `ReportQueryRequest` + `ReportQueryRepository`
-- [ ] `POST reports/{slug}/query` for `order-management` + `customer-sales`
+- [ ] `POST reports/{slug}/query` for ` + `customer-sales`
 - [ ] Redis cache wrapper
 - [ ] PHPUnit: tenant isolation, date filter required, metric accuracy vs OLTP sample
 
@@ -555,7 +555,7 @@ export async function queryReport(slug: string, payload: ReportQueryPayload) {
 | OLTP bugs distort facts | Fix stock/return logic first; control totals job |
 | Dual dashboard sources | Migrate dashboard in same sprint as ETL go-live |
 | UUID → key mapping slow | Cache dim lookups in Redis per org |
-| Over-scoping P0 | Ship only `order-management` + daily summary before 5 report UIs |
+| Over-scoping P0 | Ship only ` + daily summary before 5 report UIs |
 | MySQL no mat views | Use summary tables only |
 
 ---
@@ -566,7 +566,7 @@ export async function queryReport(slug: string, payload: ReportQueryPayload) {
 
 1. Tables: `rpt_dim_date`, `rpt_fact_order_lines`, `rpt_summary_sales_daily`, `etl_watermarks`
 2. Commands: sync facts + rebuild summaries
-3. API: `POST /admin/reports/order-management/query`
+3. API: `POST /admin/reports/query`
 4. Wire dashboard `dailySales` to summary table
 
 Everything else in doc 07 builds on this foundation.

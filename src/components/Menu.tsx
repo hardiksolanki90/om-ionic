@@ -3,7 +3,10 @@ import { cn } from '../lib/cn'
 import {
   LayoutDashboard, Users, Package, Tag, Award, ShoppingCart,
   MapPin, Route, Warehouse, RotateCcw, UserCog, Shield,
-  Boxes, BadgeCheck, Power, Ruler, FileBarChart
+  Boxes, BadgeCheck, Power, Ruler, TrendingUp,
+  Tags, ClipboardList, UserCheck, Undo2, Layers, Building2,
+  AlertTriangle, DollarSign, BarChart2, FileText,
+  Truck, Receipt
 } from 'lucide-react'
 import {
   IonContent,
@@ -40,14 +43,16 @@ const NAV: NavSection[] = [
     ],
   },
   {
-    heading: 'Operations',
-    items: [
-      { label: 'Customers', path: '/customers', icon: <Users className="w-4 h-4" /> },
-      { label: 'Salesman', path: '/salesman', icon: <BadgeCheck className="w-4 h-4" /> },
-      { label: 'Orders', path: '/orders', icon: <ShoppingCart className="w-4 h-4" /> },
-      { label: 'Returns', path: '/returns', icon: <RotateCcw className="w-4 h-4" /> },
-    ],
-  },
+      heading: 'Operations',
+      items: [
+        { label: 'Customers', path: '/customers', icon: <Users className="w-4 h-4" /> },
+        { label: 'Salesman', path: '/salesman', icon: <BadgeCheck className="w-4 h-4" /> },
+        { label: 'Orders', path: '/orders', icon: <ShoppingCart className="w-4 h-4" /> },
+        { label: 'Deliveries', path: '/deliveries', icon: <Truck className="w-4 h-4" /> },
+        { label: 'Invoices', path: '/invoices', icon: <Receipt className="w-4 h-4" /> },
+        { label: 'Returns', path: '/returns', icon: <RotateCcw className="w-4 h-4" /> },
+      ],
+    },
   {
     heading: 'Logistics',
     items: [
@@ -64,11 +69,28 @@ const NAV: NavSection[] = [
     ],
   },
   {
-    heading: 'Analytics',
+    heading: 'Sales Reports',
     items: [
-      { label: 'Reports', path: '/reports', icon: <FileBarChart className="w-4 h-4" /> },
+      { label: 'Sales Summary', path: '/reports/sales-summary', icon: <TrendingUp className="w-4 h-4" /> },
+      { label: 'Sales by Category', path: '/reports/sales-summary-category-wise', icon: <Tags className="w-4 h-4" /> },
+      { label: 'Order Management', path: '/reports/order-management', icon: <ClipboardList className="w-4 h-4" /> },
+      { label: 'Customer Sales', path: '/reports/customer-sales', icon: <UserCheck className="w-4 h-4" /> },
+      { label: 'Returns', path: '/reports/returns-logistics', icon: <Undo2 className="w-4 h-4" /> },
     ],
-  }
+  },
+  {
+    heading: 'Inventory Reports',
+    items: [
+      { label: 'Inventory & Stock', path: '/reports/inventory-stock', icon: <Layers className="w-4 h-4" /> },
+      { label: 'Warehouse Ops', path: '/reports/warehouse-operations', icon: <Building2 className="w-4 h-4" /> },
+      { label: 'Stock Summary', path: '/reports/stock-summary', icon: <Package className="w-4 h-4" /> },
+      { label: 'Stock Detail', path: '/reports/stock-detail-report', icon: <BarChart2 className="w-4 h-4" /> },
+      { label: 'Low Stock', path: '/reports/low-stock-summary', icon: <AlertTriangle className="w-4 h-4" /> },
+      { label: 'Rate List', path: '/reports/rate-list', icon: <DollarSign className="w-4 h-4" /> },
+      { label: 'Item Sales Summary', path: '/reports/item-sales-purchase-summary', icon: <FileText className="w-4 h-4" /> },
+      { label: 'Item by Party', path: '/reports/item-report-by-party', icon: <UserCheck className="w-4 h-4" /> },
+    ],
+  },
 ]
 
 export default function Menu() {

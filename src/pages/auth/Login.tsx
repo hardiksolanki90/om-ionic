@@ -186,7 +186,7 @@ function FeatureCarousel() {
 
 // ── Login page ─────────────────────────────────────────────────────────────
 export default function Login() {
-  const { login, isAuthenticated, isLoading } = useAuth()
+  const { login, isAuthenticated, isLoading, user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [present] = useIonToast()
@@ -198,7 +198,8 @@ export default function Login() {
   const [showPw, setShowPw]     = useState(false)
   const [loading, setLoading]   = useState(false)
 
-  const from = (location.state as any)?.from?.pathname || '/dashboard'
+  const from = (location.state as { from?: { pathname?: string } })?.from?.pathname
+    ?? (user?.hasOrganisation ? '/dashboard' : '/onboarding')
 
   // Active session → skip login, go to intended page (after all hooks)
   if (!isLoading && isAuthenticated) {

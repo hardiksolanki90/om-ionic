@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useImportExport } from '../../hooks/useImportExport'
 import { ImportExportButtons } from '../../components/ui/ImportExportButtons'
 import { Plus, Search, Eye, Pencil, Trash2 } from 'lucide-react'

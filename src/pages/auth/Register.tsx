@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Check, ArrowRight, ArrowLeft, ShoppingCart, Building2, Package, Truck, ShieldCheck } from 'lucide-react'
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input'
+import 'react-phone-number-input/style.css'
+import { Eye, EyeOff, ArrowRight, ArrowLeft, ShoppingCart } from 'lucide-react'
 import ThemeToggle from '../../components/ThemeToggle'
+import { fetchCsrfCookie, useAuth } from '../../contexts/AuthContext'
+import { registerUser } from '../../services/organisationOnboardingService'
+import { PENDING_ORG_NAME_KEY } from '../../types/auth'
 import './auth.css'
 
 // ── SVG illustrations (Same as Login for consistency) ──────────────────────
@@ -126,11 +131,12 @@ type FieldErrors = Partial<Record<keyof Fields, string>>
 // ── Register Page ──────────────────────────────────────────────────────────
 export default function Register() {
   const navigate = useNavigate()
+  const { setUserFromRegister } = useAuth()
   const [step, setStep] = useState<1 | 2>(1)
   const [loading, setLoading] = useState(false)
-  const [done, setDone] = useState(false)
   const [showPw, setShowPw] = useState(false)
   const [errs, setErrs] = useState<FieldErrors>({})
+  const [apiError, setApiError] = useState<string | null>(null)
 
   const [f, setF] = useState<Fields>({
     firstName: '', lastName: '', orgName: '',
@@ -140,6 +146,11 @@ export default function Register() {
   const set = (k: keyof Fields) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setF(prev => ({ ...prev, [k]: e.target.value }))
     if (errs[k]) setErrs(prev => ({ ...prev, [k]: undefined }))
+  }
+
+  const handleMobileChange = (value: string | undefined) => {
+    setF(prev => ({ ...prev, mobile: value ?? '' }))
+    if (errs.mobile) setErrs(prev => ({ ...prev, mobile: undefined }))
   }
 
   const handleNext = () => {
@@ -160,6 +171,7 @@ export default function Register() {
     const err: FieldErrors = {}
     if (!f.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) err.email = 'Valid email is required'
     if (!f.mobile.trim()) err.mobile = 'Mobile is required'
+    else if (!isValidPhoneNumber(f.mobile)) err.mobile = 'Enter a valid mobile number'
     if (!f.password || f.password.length < 8) err.password = 'Password must be 8+ chars'
     if (f.confirmPassword !== f.password) err.confirmPassword = 'Passwords mismatch'
     
@@ -169,29 +181,36 @@ export default function Register() {
     }
 
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1500))
-    setLoading(false)
-    setDone(true)
+    setApiError(null)
+    try {
+      await fetchCsrfCookie()
+      const res = await registerUser({
+        firstName: f.firstName.trim(),
+        lastName: f.lastName.trim(),
+        orgName: f.orgName.trim(),
+        email: f.email.trim(),
+        mobile: f.mobile.trim(),
+        password: f.password,
+        password_confirmation: f.confirmPassword,
+      })
+      setUserFromRegister(res.user, f.orgName.trim())
+      sessionStorage.setItem(PENDING_ORG_NAME_KEY, f.orgName.trim())
+      navigate('/onboarding', { replace: true })
+    } catch (err: unknown) {
+      const data = (err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } })?.response?.data
+      if (data?.errors) {
+        const fieldErrs: FieldErrors = {}
+        if (data.errors.email) fieldErrs.email = data.errors.email[0]
+        if (data.errors.mobile) fieldErrs.mobile = data.errors.mobile[0]
+        if (data.errors.password) fieldErrs.password = data.errors.password[0]
+        setErrs(fieldErrs)
+      } else {
+        setApiError(data?.message ?? 'Registration failed. Please try again.')
+      }
+    } finally {
+      setLoading(false)
+    }
   }
-
-  // ── Success View ──
-  if (done) return (
-    <div className="auth-page auth-font min-h-screen flex items-center justify-center p-4">
-      <div className="auth-card bg-white rounded-xl overflow-hidden max-w-[420px] w-full p-10 text-center a-pop">
-        <div className="w-20 h-20 bg-emerald-50 border-2 border-emerald-100 rounded-full flex items-center justify-center mx-auto mb-8">
-          <Check size={36} className="text-emerald-500" />
-        </div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-3">Welcome aboard!</h2>
-        <p className="text-sm text-slate-500 leading-relaxed mb-10">
-          Account created for <strong className="text-slate-800">{f.email}</strong>.<br/>
-          You're ready to start managing your retail chain.
-        </p>
-        <button className="auth-btn w-full py-3.5 rounded-lg text-sm font-bold text-white bg-brand-500" onClick={() => navigate('/login')}>
-          Go to Sign In
-        </button>
-      </div>
-    </div>
-  )
 
   return (
     <div className="auth-page auth-font min-h-screen flex items-center justify-center p-4">
@@ -250,7 +269,14 @@ export default function Register() {
 
               <div>
                 <label className="block text-[0.78rem] font-bold text-slate-700 dark:text-slate-300 mb-2">Mobile Number</label>
-                <input className={`auth-input w-full px-4 py-3 rounded-md border text-sm ${errs.mobile ? 'input-err' : 'border-slate-300'}`} value={f.mobile} onChange={set('mobile')} type="tel" placeholder="+91 98765 43210" />
+                <PhoneInput
+                  international
+                  defaultCountry="IN"
+                  placeholder="Enter mobile number"
+                  value={f.mobile || undefined}
+                  onChange={handleMobileChange}
+                  className={`auth-phone-input ${errs.mobile ? 'input-err' : ''}`}
+                />
                 {errs.mobile && <p className="text-xs text-red-500 mt-1.5">{errs.mobile}</p>}
               </div>
 
@@ -277,6 +303,7 @@ export default function Register() {
                   {loading ? 'Processing...' : 'Create Account'}
                 </button>
               </div>
+              {apiError && <p className="text-xs text-red-500 mt-2">{apiError}</p>}
             </form>
           )}
 

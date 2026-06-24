@@ -6,7 +6,7 @@ Read-only audits of the Order Management admin application. Source brief: [Repor
 
 | Report | File | Focus |
 |--------|------|--------|
-| 1 | [01-order-management-system.md](./01-order-management-system.md) | Orders, line items, stock deduction, transaction UX |
+| 1 | [01-system.md](./01-system.md) | Orders, line items, stock deduction, transaction UX |
 | 2 | [02-returns-reverse-logistics.md](./02-returns-reverse-logistics.md) | Returns lifecycle, inventory reversal gaps |
 | 3 | [03-inventory-stock-availability.md](./03-inventory-stock-availability.md) | Items, UOM, brands/categories, stock APIs |
 | 4 | [04-customer-sales-performance.md](./04-customer-sales-performance.md) | CRM, salesman, geo analytics, dashboard |
@@ -38,7 +38,7 @@ php artisan reporting:sync-all --full
 **API (Sanctum):**
 
 - `GET /api/admin/reports` — catalog
-- `POST /api/admin/reports/order-management/query` — KPIs + series
+- `POST /api/admin/reports/query` — KPIs + series
 - `GET|POST|DELETE /api/admin/reports/views` — saved views
 
 **Scheduler:** `reporting:sync-all` every 5 minutes (see `routes/console.php`).

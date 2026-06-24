@@ -12,13 +12,14 @@ export function useItemList(search = '', page = 1, perPage = 15) {
   })
 }
 
-export function useItemListInfinite(search = '') {
+export function useItemListInfinite(search = '', enabled = true) {
   return useInfiniteQuery({
     queryKey: [KEY, 'infinite', search],
     queryFn: ({ pageParam = 1 }) =>
       itemService.list({ page: pageParam as number, perPage: INFINITE_PER_PAGE, search }),
     getNextPageParam: (lastPage) => lastPage.nextPage ?? undefined,
     initialPageParam: 1,
+    enabled,
   })
 }
 

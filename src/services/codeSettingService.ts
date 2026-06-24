@@ -5,6 +5,8 @@ export const COMPONENTS = [
   'brand',
   'category',
   'customer',
+  'delivery',
+  'invoice',
   'item',
   'order',
   'return',

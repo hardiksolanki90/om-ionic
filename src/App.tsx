@@ -71,14 +71,17 @@ import SalesmanView from './pages/salesman/SalesmanView';
 import UomList from './pages/uom/UomList';
 import UomForm from './pages/uom/UomForm';
 import UomView from './pages/uom/UomView';
-import ReportsLayout from './pages/reports/ReportsLayout';
-import ReportCatalogPage from './pages/reports/ReportCatalogPage';
-import ReportViewPage from './pages/reports/ReportViewPage';
-import MisReportSectionPage from './pages/reports/mis/MisReportSectionPage';
-import { MIS_REPORT_SECTIONS } from './lib/reporting/misSections';
+import DeliveryList from './pages/deliveries/DeliveryList';
+import DeliveryForm from './pages/deliveries/DeliveryForm';
+import InvoiceList from './pages/invoices/InvoiceList';
+import InvoiceForm from './pages/invoices/InvoiceForm';
+import ReportPage from './pages/reports/ReportPage';
 import Login from './pages/auth/Login';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import Register from './pages/auth/Register';
+import OrganisationOnboardingWizard from './pages/onboarding/OrganisationOnboardingWizard';
+import ProfilePage from './pages/profile/ProfilePage';
+import { OnboardingRoute } from './components/ProtectedRoute';
 
 setupIonicReact({ mode: 'md' });
 
@@ -98,6 +101,8 @@ function AppContent() {
     location.pathname === r || location.pathname.startsWith(r + '/')
   );
 
+  const isOnboardingRoute = location.pathname === '/onboarding';
+
   // Auth pages render full-screen, no shell
   if (isAuthRoute) {
     return (
@@ -105,6 +110,15 @@ function AppContent() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+      </Routes>
+    );
+  }
+
+  // Onboarding — authenticated, no sidebar
+  if (isOnboardingRoute) {
+    return (
+      <Routes>
+        <Route path="/onboarding" element={<OnboardingRoute><OrganisationOnboardingWizard /></OnboardingRoute>} />
       </Routes>
     );
   }
@@ -118,18 +132,7 @@ function AppContent() {
           <Routes>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/reports" element={<ReportsLayout />}>
-              <Route index element={<ReportCatalogPage />} />
-              <Route path="mis-report" element={<MisReportSectionPage />} />
-              {MIS_REPORT_SECTIONS.map((section) => (
-                <Route
-                  key={section.slug}
-                  path={section.slug}
-                  element={<MisReportSectionPage />}
-                />
-              ))}
-              <Route path=":slug" element={<ReportViewPage />} />
-            </Route>
+            <Route path="/reports/:slug" element={<ReportPage />} />
             <Route path="/customers" element={<CustomerList />} />
             <Route path="/customers/view/:uuid" element={<CustomerView />} />
             <Route path="/customers/add" element={<CustomerForm />} />
@@ -149,6 +152,12 @@ function AppContent() {
             <Route path="/orders" element={<OrderList />} />
             <Route path="/orders/add" element={<OrderForm />} />
             <Route path="/orders/edit/:id" element={<OrderForm />} />
+            <Route path="/deliveries" element={<DeliveryList />} />
+            <Route path="/deliveries/add" element={<DeliveryForm />} />
+            <Route path="/deliveries/edit/:id" element={<DeliveryForm />} />
+            <Route path="/invoices" element={<InvoiceList />} />
+            <Route path="/invoices/add" element={<InvoiceForm />} />
+            <Route path="/invoices/edit/:id" element={<InvoiceForm />} />
             <Route path="/areas" element={<AreaList />} />
             <Route path="/areas/add" element={<AreaForm />} />
             <Route path="/areas/view/:id" element={<AreaView />} />
@@ -180,6 +189,7 @@ function AppContent() {
             <Route path="/uom/add" element={<UomForm />} />
             <Route path="/uom/view/:id" element={<UomView />} />
             <Route path="/uom/edit/:id" element={<UomForm />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>

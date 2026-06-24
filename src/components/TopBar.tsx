@@ -59,6 +59,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/roles': 'Roles',
   '/salesman': 'Salesman',
   '/uom': 'Item UOM',
+  '/profile': 'Your Profile',
 }
 
 export function TopBar() {

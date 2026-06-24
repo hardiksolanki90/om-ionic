@@ -1,24 +1,28 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { SlidePanel } from '../../components/ui/SlidePanel'
-import { Input, Select } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
+import { Input } from '../../components/ui/Input'
 import { Plus, Trash2, ChevronDown } from 'lucide-react'
 import { cn } from '../../lib/cn'
 import { OrderItem, OrderForm as OrderFormType } from '../../types/order'
-import { StatusSwitch } from '../../components/ui/StatusSwitch'
 import { ItemPickerModal } from '../../components/ItemPickerModal'
 import { RoutePickerModal } from '../../components/RoutePickerModal'
 import { SalesmanPickerModal } from '../../components/SalesmanPickerModal'
 import { CustomerPickerModal } from '../../components/CustomerPickerModal'
+import { CodeSettingsModal } from '../../components/ui/CodeSettingsModal'
 import { useOrder, useCreateOrder, useUpdateOrder } from '../../hooks/useOrders'
+import { useCodeSettings, useCodePreview } from '../../hooks/useCodeSetting'
 import { useIonToast } from '@ionic/react'
 import { PageLayout } from '../../layouts/PageLayout'
-import { CodeSettingsModal } from '../../components/ui/CodeSettingsModal'
-import { useCodeSettings, useCodePreview } from '../../hooks/useCodeSetting'
 
 const getEmptyForm = (): OrderFormType => ({
-  reference: '', customerId: '', routeId: '', salesmanId: '', orderCode: '', orderDate: new Date().toISOString().slice(0, 10),
+  reference: '',
+  customerId: '',
+  routeId: '',
+  salesmanId: '',
+  orderCode: '',
+  orderDate: new Date().toISOString().slice(0, 10),
   items: [
     {
       id: Date.now().toString(),
@@ -29,9 +33,18 @@ const getEmptyForm = (): OrderFormType => ({
       discountType: 'percentage',
       tax: 0,
       net: 0,
-      total: 0
+      total: 0,
     }
-  ], customerNote: '', grossTotal: 0, totalDiscount: 0, netTotal: 0, totalTax: 0, totalQty: 0, rounding: 0, finalTotal: 0, status: 1 as 0 | 1
+  ],
+  customerNote: '',
+  grossTotal: 0,
+  totalDiscount: 0,
+  netTotal: 0,
+  totalTax: 0,
+  totalQty: 0,
+  rounding: 0,
+  finalTotal: 0,
+  status: 1 as 0 | 1,
 })
 
 type OrderTotals = Pick<OrderFormType, 'items' | 'grossTotal' | 'totalDiscount' | 'netTotal' | 'totalTax' | 'totalQty' | 'rounding' | 'finalTotal'>
@@ -96,27 +109,17 @@ export default function OrderForm() {
 
   const [form, setForm] = useState<OrderFormType>(getEmptyForm())
   const [openItemFor, setOpenItemFor] = useState<string | null>(null)
-  
   const [customerPickerOpen, setCustomerPickerOpen] = useState(false)
   const [customerName, setCustomerName] = useState('')
-  
   const [routePickerOpen, setRoutePickerOpen] = useState(false)
   const [routeName, setRouteName] = useState('')
-  
   const [salesmanPickerOpen, setSalesmanPickerOpen] = useState(false)
   const [salesmanName, setSalesmanName] = useState('')
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
-  const [showSettings, setShowSettings] = useState(false)
   const { data: codeSettings } = useCodeSettings('order')
-  const isAuto = codeSettings?.is_auto
-
-  const { data: generatedCode } = useCodePreview('order', !isEdit && isAuto)
-
-  useEffect(() => {
-    if (!isEdit && isAuto && generatedCode?.code) {
-      setForm(f => ({ ...f, orderCode: generatedCode.code! }))
-    }
-  }, [isEdit, isAuto, generatedCode])
+  const isAuto = codeSettings?.is_auto ?? false
+  const { data: previewData } = useCodePreview('order', !isEdit && isAuto)
 
   useEffect(() => {
     if (isEdit && data?.data) {
@@ -156,8 +159,13 @@ export default function OrderForm() {
     }
   }, [data, isEdit])
 
+  useEffect(() => {
+    if (!isEdit && isAuto && previewData?.code) {
+      setForm(f => ({ ...f, orderCode: previewData.code || '' }))
+    }
+  }, [isEdit, isAuto, previewData])
+
   const onChange = (update: Partial<OrderFormType>) => setForm(f => ({ ...f, ...update }))
-  const set = (k: keyof OrderFormType) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => onChange({ [k]: e.target.value })
 
   const calculateTotals = (items: OrderItem[]) => {
     onChange(computeOrderTotals(items))
@@ -186,11 +194,11 @@ export default function OrderForm() {
 
   const updateItem = (index: number, field: keyof OrderItem, value: any) => {
     const newItems = [...(form.items || [])]
-      ; (newItems[index] as any)[field] = value
+    ;(newItems[index] as any)[field] = value
     calculateTotals(newItems)
   }
 
-  const handleItemSelect = (rowId: string, itemId: number, name: string, price: number, tax: number, uoms: Array<{id: number; name: string}>) => {
+  const handleItemSelect = (rowId: string, itemId: number, name: string, price: number, tax: number, uoms: Array<{ id: number; name: string }>) => {
     const newItems = (form.items || []).map(item =>
       item.id === rowId ? { ...item, itemId, itemName: name, price, tax, availableUoms: uoms, uomId: uoms[0]?.id, uomName: uoms[0]?.name } : item
     )
@@ -204,23 +212,23 @@ export default function OrderForm() {
     if (isEdit && id) {
       updateOrder.mutate(
         { uuid: id, data: payload },
-        { 
-          onSuccess: () => { 
+        {
+          onSuccess: () => {
             present({ message: 'Order updated', duration: 2000, color: 'success' })
             navigate('/orders')
-          }, 
-          onError 
+          },
+          onError
         }
       )
     } else {
       createOrder.mutate(
         payload,
-        { 
-          onSuccess: () => { 
+        {
+          onSuccess: () => {
             present({ message: 'Order created', duration: 2000, color: 'success' })
             navigate('/orders')
-          }, 
-          onError 
+          },
+          onError
         }
       )
     }
@@ -246,66 +254,81 @@ export default function OrderForm() {
         width="full"
         pageMode
         footer={
-          <div className="w-full flex items-center justify-between">
-            <StatusSwitch
-              value={form.status === 1}
-              onChange={v => onChange({ status: v ? 1 : 0 })}
-            />
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" onClick={() => navigate('/orders')} className="text-slate-500">Cancel</Button>
-              <Button onClick={handleSave} disabled={saving} className="bg-brand-600 hover:bg-brand-700 text-white">
-                {saving ? 'Saving...' : isEdit ? 'Update Order' : 'Create Order'}
-              </Button>
-            </div>
+          <div className="w-full flex justify-end">
+            <Button onClick={handleSave} disabled={saving} className="bg-slate-800 hover:bg-slate-900 text-white px-8">
+              {saving ? 'Saving...' : 'Save & Submit'}
+            </Button>
           </div>
         }
       >
         <div className="space-y-6 pb-12">
           {/* Top details block */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/60">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Customer</label>
-              <button
-                type="button"
-                onClick={() => setCustomerPickerOpen(true)}
-                className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm text-left text-slate-900 dark:text-slate-100 ring-1 ring-slate-300 dark:ring-slate-700"
-              >
-                {customerName || <span className="text-slate-400 dark:text-slate-500">Select Customer</span>}
-              </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+            {/* Left column */}
+            <div className="space-y-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Customer</label>
+                <button
+                  type="button"
+                  onClick={() => setCustomerPickerOpen(true)}
+                  className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm text-left text-slate-900 dark:text-slate-100 ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                >
+                  {customerName
+                    ? <span>{customerName}</span>
+                    : <span className="text-slate-400 dark:text-slate-500">Select Customer</span>
+                  }
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Route</label>
+                <button
+                  type="button"
+                  onClick={() => setRoutePickerOpen(true)}
+                  className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm text-left text-slate-900 dark:text-slate-100 ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                >
+                  {routeName
+                    ? <span>{routeName}</span>
+                    : <span className="text-slate-400 dark:text-slate-500">Select Route</span>
+                  }
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Salesman</label>
+                <button
+                  type="button"
+                  onClick={() => setSalesmanPickerOpen(true)}
+                  className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm text-left text-slate-900 dark:text-slate-100 ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                >
+                  {salesmanName
+                    ? <span>{salesmanName}</span>
+                    : <span className="text-slate-400 dark:text-slate-500">Select Salesman</span>
+                  }
+                </button>
+              </div>
             </div>
-            <Input 
-              label="Order Number" 
-              value={(!isEdit && isAuto) ? (generatedCode?.code || 'Generating...') : (form.orderCode || '')} 
-              onChange={set('orderCode')} 
-              placeholder="ORD-0000" 
-              disabled={!isEdit && isAuto}
-              onSettingsClick={() => setShowSettings(true)}
-            />
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Route</label>
-              <button
-                type="button"
-                onClick={() => setRoutePickerOpen(true)}
-                className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm text-left text-slate-900 dark:text-slate-100 ring-1 ring-slate-300 dark:ring-slate-700"
-              >
-                {routeName || <span className="text-slate-400 dark:text-slate-500">Select Route</span>}
-              </button>
-            </div>
-            <Input
-              label="Order Date"
-              type="date"
-              value={form.orderDate}
-              onChange={set('orderDate')}
-            />
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Salesman</label>
-              <button
-                type="button"
-                onClick={() => setSalesmanPickerOpen(true)}
-                className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm text-left text-slate-900 dark:text-slate-100 ring-1 ring-slate-300 dark:ring-slate-700"
-              >
-                {salesmanName || <span className="text-slate-400 dark:text-slate-500">Select Salesman</span>}
-              </button>
+
+            {/* Right column */}
+            <div className="space-y-4">
+              <Input
+                label="Order Number"
+                placeholder={isAuto ? 'Auto-generated' : 'ORD-0000'}
+                value={(!isEdit && isAuto) ? (previewData?.code || 'Generating...') : form.orderCode}
+                onChange={e => onChange({ orderCode: e.target.value })}
+                disabled={!isEdit && isAuto}
+                onSettingsClick={() => setSettingsOpen(true)}
+              />
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Order Date</label>
+                <input
+                  type="date"
+                  className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm text-slate-900 dark:text-slate-100 ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                  value={form.orderDate}
+                  onChange={e => onChange({ orderDate: e.target.value })}
+                />
+              </div>
             </div>
           </div>
 
@@ -315,20 +338,22 @@ export default function OrderForm() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-medium">
                   <tr>
-                    <th className="px-3 py-3 min-w-[180px]">Item</th>
+                    <th className="px-3 py-3 w-10 text-center">#</th>
+                    <th className="px-3 py-3 min-w-[180px]">ITEM</th>
                     <th className="px-3 py-3 min-w-[100px]">UOM</th>
                     <th className="px-3 py-3 w-20">QTY</th>
-                    <th className="px-3 py-3 w-20">Price</th>
-                    <th className="px-3 py-3 min-w-[110px]">Discount</th>
-                    <th className="px-3 py-3 w-20">Tax</th>
-                    <th className="px-3 py-3 w-20">Net</th>
-                    <th className="px-3 py-3 w-24">Total</th>
-                    <th className="px-3 py-3 w-10 text-center">Act</th>
+                    <th className="px-3 py-3 w-20">PRICE</th>
+                    <th className="px-3 py-3 min-w-[110px]">DISCOUNT</th>
+                    <th className="px-3 py-3 w-20">TAX</th>
+                    <th className="px-3 py-3 w-20">NET</th>
+                    <th className="px-3 py-3 w-24">TOTAL</th>
+                    <th className="px-3 py-3 w-10"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-900">
                   {(form.items || []).map((item, index) => (
                     <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="px-3 py-2 text-center text-slate-500 text-xs">{index + 1}</td>
                       <td className="px-3 py-2">
                         <button
                           type="button"
@@ -432,42 +457,39 @@ export default function OrderForm() {
           {/* Customer Note & Totals summary block */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-start">
             <div className="md:col-span-3">
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Customer Note</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Customer Note</label>
               <textarea
-                className="w-full min-h-[160px] rounded-xl border border-slate-300 dark:border-slate-600 p-3 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 resize-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                placeholder="Enter notes here..."
+                className="w-full min-h-[200px] rounded-xl border border-slate-300 dark:border-slate-600 p-3 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 resize-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                placeholder="Enter customer notes..."
                 value={form.customerNote || ''}
                 onChange={(e) => onChange({ customerNote: e.target.value })}
               />
             </div>
 
-            <div className="md:col-span-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 rounded-xl p-5 space-y-3">
-              <h3 className="font-semibold text-slate-800 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700 pb-2 mb-3">Order Summary</h3>
-              <div className="flex justify-between text-sm">
+            <div className="md:col-span-2 space-y-2 text-sm">
+              <div className="flex justify-between">
                 <span className="text-slate-500">Gross Total</span>
-                <span className="font-semibold text-slate-700">${(form.grossTotal || 0).toFixed(2)}</span>
+                <span className="font-medium text-slate-700">{(form.grossTotal || 0).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between">
                 <span className="text-slate-500">Discount</span>
-                <span className="font-semibold text-red-500">-${(form.totalDiscount ?? (form.grossTotal || 0) - (form.netTotal || 0)).toFixed(2)}</span>
+                <span className="font-medium text-slate-700">{(form.totalDiscount ?? 0).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between">
                 <span className="text-slate-500">Net Total</span>
-                <span className="font-semibold text-slate-700">${(form.netTotal || 0).toFixed(2)}</span>
+                <span className="font-medium text-slate-700">{(form.netTotal || 0).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between">
                 <span className="text-slate-500">Tax</span>
-                <span className="font-semibold text-slate-700">+${(form.totalTax || 0).toFixed(2)}</span>
+                <span className="font-medium text-slate-700">{(form.totalTax || 0).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between">
                 <span className="text-slate-500">Rounding</span>
-                <span className="font-semibold text-slate-700">
-                  {(form.rounding || 0) >= 0 ? '+' : ''}${(form.rounding || 0).toFixed(2)}
-                </span>
+                <span className="font-medium text-slate-700">{(form.rounding || 0).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-lg font-bold border-t border-slate-200 pt-3 mt-3">
-                <span className="text-slate-800">Final Total</span>
-                <span className="text-brand-600">${(form.finalTotal || 0).toFixed(2)}</span>
+              <div className="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-2 mt-2">
+                <span className="font-bold italic text-slate-800 dark:text-slate-100">Total</span>
+                <span className="font-bold italic text-slate-800 dark:text-slate-100">{(form.finalTotal || 0).toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -512,14 +534,9 @@ export default function OrderForm() {
           }}
           selectedId={form.salesmanId ? Number(form.salesmanId) : undefined}
         />
-        
-        <CodeSettingsModal
-          isOpen={showSettings}
-          onClose={() => setShowSettings(false)}
-          component="order"
-          title="Order"
-        />
       </SlidePanel>
+
+      <CodeSettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} component="order" title="Order Code" />
     </PageLayout>
   )
 }
